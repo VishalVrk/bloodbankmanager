@@ -106,7 +106,7 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    res.redirect('/dashboard');
+    res.redirect('/dashboard',{error: null,user: auth.currentUser});
   } catch (error) {
     console.error('Login error:', error);
     res.render('auth/login', { error: error.message });
