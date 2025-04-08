@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Bank Management System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Custom styles to enhance the layout */
+    .main-container {
+      width: 90%;
+      max-width: 1800px; /* Increased from default */
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .nav-item {
+      padding: 0.5rem 1rem;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <header class="bg-red-700 text-white shadow-lg py-4"> <!-- Increased padding -->
+    <div class="main-container px-6 flex justify-between items-center"> <!-- Increased padding -->
+      <h1 class="text-3xl font-bold"> <!-- Increased text size -->
+        <a href="/dashboard" class="hover:text-red-200 transition">Blood Bank System</a>
+      </h1>
+      <nav>
+        <ul class="flex space-x-8"> <!-- Increased spacing between nav items -->
+          <% if (user) { %>
+            <li class="nav-item"><a href="/dashboard" class="hover:text-red-200 transition">Dashboard</a></li>
+            <li class="nav-item"><a href="/blood/add" class="hover:text-red-200 transition">Add Blood</a></li>
+            <li class="nav-item"><a href="/donor/add" class="hover:text-red-200 transition">Add Donor</a></li>
+            <li class="nav-item"><a href="/receiver/add" class="hover:text-red-200 transition">Add Receiver</a></li>
+            <li class="nav-item">
+              <form action="/logout" method="POST" class="inline">
+                <button type="submit" class="hover:text-red-200 transition">Logout</button>
+              </form>
+            </li>
+          <% } else { %>
+            <li class="nav-item"><a href="/login" class="hover:text-red-200 transition">Login</a></li>
+            <li class="nav-item"><a href="/signup" class="hover:text-red-200 transition">Sign Up</a></li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-grow main-container px-8 py-10"> <!-- Increased padding -->

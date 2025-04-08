@@ -1,0 +1,174 @@
+<%- include('../partials/header') %>
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-blue-700">Donor Management</h2>
+    <a href="/dashboard" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition duration-300">
+      Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Donor Form -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+    <div class="bg-blue-50 px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-bold text-blue-700">Add New Donor</h3>
+    </div>
+    <div class="p-6">
+      <form action="/donor/add" method="POST">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input type="text" name="name" id="name" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="age" class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+            <input type="number" name="age" id="age" min="18" max="65" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="bloodType" class="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
+            <select name="bloodType" id="bloodType" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select Blood Type</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+          <div>
+            <label for="contactInfo" class="block text-sm font-medium text-gray-700 mb-2">Contact Information</label>
+            <input type="text" name="contactInfo" id="contactInfo" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <!-- Donation Details -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <h4 class="text-lg font-medium text-gray-800 mb-4">Donation Details</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="unitsAvailable" class="block text-sm font-medium text-gray-700 mb-2">Units to Donate</label>
+              <input type="number" name="unitsAvailable" id="unitsAvailable" min="1" max="3" value="1" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label for="donationDate" class="block text-sm font-medium text-gray-700 mb-2">Donation Date</label>
+              <input type="date" name="collectionDate" id="donationDate" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value="<%= new Date().toISOString().split('T')[0] %>">
+            </div>
+          </div>
+
+          <div class="hidden">
+            <!-- These fields will be auto-calculated -->
+            <input type="text" name="donorInfo" id="donorInfo">
+            <input type="date" name="expiryDate" id="expiryDate">
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <button type="submit" 
+            class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300">
+            Register Donation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Donor List -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-blue-50 px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-bold text-blue-700">Recent Donors</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% if (typeof donors !== 'undefined' && donors.length > 0) { %>
+            <% donors.forEach(donor => { %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap"><%= donor.name %></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    <%= donor.bloodType.includes('+') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <%= donor.bloodType %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= donor.age %></td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= donor.contactInfo %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex space-x-2 justify-end">
+                    <a href="/donor/edit/<%= donor.id %>" class="text-blue-600 hover:text-blue-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                      </svg>
+                    </a>
+                    <form action="/donor/delete/<%= donor.id %>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this donor?');">
+                      <button type="submit" class="text-red-600 hover:text-red-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500">No donors available.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-calculate expiry date (42 days from collection date)
+  document.getElementById('donationDate').addEventListener('change', function() {
+    const collectionDate = new Date(this.value);
+    const expiryDate = new Date(collectionDate);
+    expiryDate.setDate(expiryDate.getDate() + 42); // Blood expires after 42 days
+    
+    document.getElementById('expiryDate').value = expiryDate.toISOString().split('T')[0];
+  });
+
+  // Auto-populate donor info based on name + blood type
+  document.getElementById('name').addEventListener('input', updateDonorInfo);
+  document.getElementById('bloodType').addEventListener('change', updateDonorInfo);
+  
+  function updateDonorInfo() {
+    const name = document.getElementById('name').value;
+    const bloodType = document.getElementById('bloodType').value;
+    
+    if (name && bloodType) {
+      document.getElementById('donorInfo').value = `${name} (${bloodType})`;
+    }
+  }
+
+  // Set initial values
+  const today = new Date();
+  document.getElementById('donationDate').value = today.toISOString().split('T')[0];
+  
+  const expiryDate = new Date(today);
+  expiryDate.setDate(expiryDate.getDate() + 42);
+  document.getElementById('expiryDate').value = expiryDate.toISOString().split('T')[0];
+</script>
+<%- include('../partials/footer') %>

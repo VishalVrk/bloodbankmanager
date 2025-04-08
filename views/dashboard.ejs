@@ -1,0 +1,258 @@
+<%- include('./partials/header') %>
+<div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-md">
+  <div class="flex justify-between items-center mb-8">
+    <h2 class="text-3xl font-bold text-red-700">Blood Donation Dashboard</h2>
+    <div class="flex items-center">
+      <span class="mr-2 text-gray-600">Welcome, <%= user ? user.email : 'User' %></span>
+      <form action="/logout" method="POST" class="inline">
+        <button type="submit" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition duration-300">Logout</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-red-50 p-6 rounded-lg shadow border-l-4 border-red-700">
+      <h3 class="text-lg font-semibold text-gray-800">Blood Units</h3>
+      <p class="text-3xl font-bold text-red-700"><%= bloodData.reduce((total, item) => total + item.unitsAvailable, 0) %></p>
+      <p class="text-sm text-gray-600">Total units available</p>
+    </div>
+    <div class="bg-blue-50 p-6 rounded-lg shadow border-l-4 border-blue-700">
+      <h3 class="text-lg font-semibold text-gray-800">Donors</h3>
+      <p class="text-3xl font-bold text-blue-700"><%= typeof donors !== 'undefined' ? donors.length : 0 %></p>
+      <p class="text-sm text-gray-600">Registered donors</p>
+    </div>
+    <div class="bg-green-50 p-6 rounded-lg shadow border-l-4 border-green-700">
+      <h3 class="text-lg font-semibold text-gray-800">Pending Requests</h3>
+      <p class="text-3xl font-bold text-green-700"><%= typeof requests !== 'undefined' ? requests.filter(req => req.status === 'pending').length : 0 %></p>
+      <p class="text-sm text-gray-600">Waiting for approval</p>
+    </div>
+    <div class="bg-yellow-50 p-6 rounded-lg shadow border-l-4 border-yellow-700">
+      <h3 class="text-lg font-semibold text-gray-800">Expiring Soon</h3>
+      <p class="text-3xl font-bold text-yellow-700"><%= bloodData.filter(item => {
+        const expiryDate = new Date(item.expiryDate);
+        const today = new Date();
+        const diffTime = Math.abs(expiryDate - today);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+      }).length %></p>
+      <p class="text-sm text-gray-600">Units expiring within 7 days</p>
+    </div>
+  </div>
+  
+  <!-- Action Buttons -->
+  <div class="flex flex-wrap gap-4 mb-8">
+    <a href="/donor/add" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z" />
+      </svg>
+      Register Donor
+    </a>
+    <a href="/receiver/add" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300 flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+      </svg>
+      Request Blood
+    </a>
+  </div>
+
+  <!-- Pending Blood Requests -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+    <div class="bg-yellow-50 px-6 py-4 border-b border-gray-200">
+      <h3 class="text-xl font-bold text-yellow-700">Pending Blood Requests</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgency</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested On</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% if (typeof requests !== 'undefined' && requests.filter(req => req.status === 'pending').length > 0) { %>
+            <% requests.filter(req => req.status === 'pending').forEach(request => { %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap"><%= request.name %></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    <%= request.bloodType.includes('+') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <%= request.bloodType %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= request.units %></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if (request.urgency === 'critical') { %>
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                      Critical
+                    </span>
+                  <% } else if (request.urgency === 'urgent') { %>
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Urgent
+                    </span>
+                  <% } else { %>
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Normal
+                    </span>
+                  <% } %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= new Date(request.createdAt).toLocaleDateString() %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex space-x-2">
+                    <form action="/request/approve/<%= request.id %>" method="POST" class="inline">
+                      <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
+                        Approve
+                      </button>
+                    </form>
+                    <form action="/request/reject/<%= request.id %>" method="POST" class="inline">
+                      <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300">
+                        Reject
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">No pending requests.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Blood Inventory Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+      <h3 class="text-xl font-bold text-red-700">Blood Inventory</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units Available</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor Info</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collection Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% if (bloodData.length === 0) { %>
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">No blood inventory data available.</td>
+            </tr>
+          <% } else { %>
+            <% bloodData.forEach(blood => { %>
+              <tr class="hover:bg-gray-50 <%= blood.unitsAvailable === 0 ? 'bg-gray-100' : '' %>">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    <%= blood.bloodType.includes('+') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <%= blood.bloodType %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= blood.unitsAvailable %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= blood.donorInfo %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= new Date(blood.collectionDate).toLocaleDateString() %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% 
+                    const expiryDate = new Date(blood.expiryDate);
+                    const today = new Date();
+                    const diffTime = expiryDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let expiryClass = 'text-green-600';
+                    if (diffDays <= 7) expiryClass = 'text-yellow-600';
+                    if (diffDays <= 3) expiryClass = 'text-red-600';
+                    if (diffDays < 0) expiryClass = 'text-red-600 font-bold';
+                  %>
+                  <span class="<%= expiryClass %>">
+                    <%= expiryDate.toLocaleDateString() %>
+                    <% if (diffDays <= 7 && diffDays > 0) { %>
+                      (<%= diffDays %> days left)
+                    <% } else if (diffDays < 0) { %>
+                      (EXPIRED)
+                    <% } %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex space-x-2 justify-end">
+                    <a href="/blood/edit/<%= blood.id %>" class="text-blue-600 hover:text-blue-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                      </svg>
+                    </a>
+                    <form action="/blood/delete/<%= blood.id %>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                      <button type="submit" class="text-red-600 hover:text-red-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Recent Activity -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+      <h3 class="text-xl font-bold text-purple-700">Recent Activity</h3>
+    </div>
+    <div class="p-6">
+      <div class="space-y-4">
+        <% if (typeof requests !== 'undefined' && requests.filter(req => req.status !== 'pending').length > 0) { %>
+          <% requests.filter(req => req.status !== 'pending').slice(0, 5).forEach(request => { %>
+            <div class="flex items-start space-x-3 p-3 rounded-lg 
+                <%= request.status === 'approved' ? 'bg-green-50' : 'bg-red-50' %>">
+              <div class="rounded-full p-2 
+                  <%= request.status === 'approved' ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700' %>">
+                <% if (request.status === 'approved') { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                <% } else { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                <% } %>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-800">
+                  Blood request for <%= request.name %> was <%= request.status %>
+                </h4>
+                <p class="text-sm text-gray-600">
+                  <%= request.units %> units of <%= request.bloodType %> • 
+                  <%= new Date(request.updatedAt || request.createdAt).toLocaleString() %>
+                </p>
+              </div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p class="text-gray-500 text-center py-4">No recent activity.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('./partials/footer') %>
